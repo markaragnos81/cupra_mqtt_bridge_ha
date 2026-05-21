@@ -28,7 +28,7 @@ API_LOG_LEVEL="$(bashio::config 'api_log_level')"
 MAX_AGE="$(bashio::config 'max_age')"
 LOCALE_VALUE="$(bashio::config 'locale')"
 HIDE_VINS="$(bashio::config 'hide_vins')"
-TIMEZONE_VALUE="$(bashio::timezone)"
+TIMEZONE_VALUE="${TZ:-UTC}"
 CONFIG_PATH=/data/carconnectivity.json
 
 export CONFIG_PATH
