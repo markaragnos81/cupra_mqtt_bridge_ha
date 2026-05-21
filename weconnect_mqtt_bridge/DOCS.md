@@ -1,47 +1,49 @@
-# WeConnect MQTT Bridge
+# Cupra MQTT Bridge
 
-Dieses Add-on startet [`weconnect-mqtt`](https://github.com/tillsteinbach/WeConnect-mqtt) direkt in Home Assistant und publiziert die Fahrzeugdaten in deinen MQTT-Broker.
+Dieses Add-on startet [`CarConnectivity-plugin-mqtt`](https://github.com/tillsteinbach/CarConnectivity-plugin-mqtt) zusammen mit dem Connector [`carconnectivity-connector-seatcupra`](https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra) direkt in Home Assistant und publiziert die Fahrzeugdaten in deinen MQTT-Broker.
 
 ## Was das Add-on macht
 
-- Login bei Volkswagen/WeConnect mit deinen Zugangsdaten
+- Login bei MyCupra oder MySeat mit deinen Zugangsdaten
 - Regelmaessiges Abrufen der Fahrzeugdaten
 - Publizieren aller verfuegbaren Werte nach MQTT
-- Optional: Publizieren eines `rawjson`-Topics fuer eigene Weiterverarbeitung
+- Optional: Home-Assistant MQTT Discovery ueber `mqtt_homeassistant`
+- Optional: Publizieren eines `full_json`-Topics fuer eigene Weiterverarbeitung
 
-## Wichtiger Hinweis zu Cupra
+## Basis
 
-`WeConnect-mqtt` ist upstream im End-of-Life-Uebergang. Der Maintainer verweist fuer Seat/Cupra/Skoda langfristig auf `CarConnectivity-plugin-mqtt`.
-
-Das Add-on hier kapselt bewusst trotzdem `WeConnect-mqtt`, weil du genau diese Basis angefragt hast. Fuer neuere Cupra-Modelle kann es sein, dass spaeter ein Wechsel auf CarConnectivity noetig wird.
+Dieses Add-on basiert jetzt auf dem neueren CarConnectivity-Stack, der laut Upstream der Nachfolger des alten WeConnect-Wegs fuer mehrere Marken ist, darunter Seat und Cupra.
 
 ## Konfiguration
 
 Minimal noetig:
 
-- `username`: Volkswagen/Cupra Login
+- `brand`: `cupra` oder `seat`
+- `username`: MyCupra/MySeat Login
 - `password`: Passwort
 - `mqtt_broker`: Hostname oder IP deines MQTT-Brokers
 
 Empfohlene Defaults:
 
 - `mqtt_broker`: `core-mosquitto` wenn du das offizielle Mosquitto-Add-on nutzt
-- `mqtt_prefix`: `weconnect/0`
-- `with_raw_json_topic`: `true`
+- `mqtt_prefix`: `carconnectivity/0`
+- `enable_homeassistant_discovery`: `true`
+- `with_full_json`: `true`
 - `convert_times`: `true`
 - `locale`: leer lassen oder gezielt `de_DE.UTF-8` setzen
 
 ## Installation
 
 1. Dieses Repository als Add-on-Repository in Home Assistant hinzufuegen.
-2. Das Add-on `WeConnect MQTT Bridge` installieren.
+2. Das Add-on `Cupra MQTT Bridge` installieren.
 3. Konfiguration eintragen.
 4. Add-on starten.
-5. Im MQTT-Broker pruefen, ob Topics unter `weconnect/0/...` erscheinen.
+5. Im MQTT-Broker pruefen, ob Topics unter `carconnectivity/0/...` erscheinen.
 
 ## Beispielkonfiguration
 
 ```yaml
+brand: "cupra"
 username: "name@example.com"
 password: "supersecret"
 spin: ""
@@ -49,31 +51,32 @@ mqtt_broker: "core-mosquitto"
 mqtt_port: 1883
 mqtt_username: ""
 mqtt_password: ""
-mqtt_prefix: "weconnect/0"
+mqtt_prefix: "carconnectivity/0"
 update_interval: 300
 mqtt_keepalive: 60
 mqtt_version: "3.1.1"
 transport: "tcp"
+mqtt_client_id: ""
 use_tls: false
 insecure: false
-pictures: false
-picture_format: "txt"
-no_capabilities: false
-update_on_connect: true
+picture_format: "png"
 republish_on_update: false
-with_raw_json_topic: true
-list_topics: false
+retain_on_disconnect: true
+with_full_json: true
 convert_times: true
+enable_homeassistant_discovery: true
+log_level: "error"
+api_log_level: "error"
+max_age: 300
 locale: ""
-additional_arguments: ""
+hide_vins: ""
 ```
 
-## Eigene Home-Assistant-Sensoren
+## Home Assistant
 
-`weconnect-mqtt` publiziert Werte nach MQTT, aber keine nativen Home-Assistant-Discovery-Entitaeten. Die Werte kannst du daher entweder:
+Wenn `enable_homeassistant_discovery` aktiv ist, bindet Home Assistant viele Entitaeten direkt ueber MQTT Discovery ein.
 
-- mit MQTT Discovery eines vorgeschalteten Mappers nutzen
-- oder direkt als MQTT-Sensoren in Home Assistant anlegen
+Falls du einzelne Topics manuell anbinden willst, geht das weiterhin ueber MQTT-Sensoren.
 
 Beispiel:
 
@@ -81,17 +84,15 @@ Beispiel:
 mqtt:
   sensor:
     - name: "Cupra Battery Level"
-      state_topic: "weconnect/0/vehicles/WVWZZZ.../domains/charging/batteryStatus/currentSOC_pct"
+      state_topic: "carconnectivity/0/garage/WVWZZZ.../drives/electric/range/level/value"
       unit_of_measurement: "%"
     - name: "Cupra Range"
-      state_topic: "weconnect/0/vehicles/WVWZZZ.../domains/measurements/range/cruisingRangeElectric_km"
+      state_topic: "carconnectivity/0/garage/WVWZZZ.../drives/electric/range/value"
       unit_of_measurement: "km"
 ```
 
 ## Erweiterte Optionen
 
-Mit `additional_arguments` kannst du zusaetzliche `weconnect-mqtt` CLI-Parameter durchreichen, zum Beispiel:
-
-```text
---selective climatisation --selective charging
-```
+- `hide_vins`: Kommagetrennte Liste von VINs, die ignoriert werden sollen
+- `picture_format`: `png` oder `txt`
+- `api_log_level`: Detailgrad des Seat/Cupra-Connectors

@@ -1,10 +1,13 @@
 configuration:
+  brand:
+    name: Marke
+    description: Waehle, ob der Connector MyCupra oder MySeat verwenden soll.
   username:
     name: Benutzername
-    description: Benutzername deines Volkswagen- oder Cupra-Kontos.
+    description: Benutzername deines Seat- oder Cupra-Kontos.
   password:
     name: Passwort
-    description: Passwort deines Volkswagen- oder Cupra-Kontos.
+    description: Passwort deines Seat- oder Cupra-Kontos.
   spin:
     name: S-PIN
     description: Optionale S-PIN fuer schreibende Fahrzeugfunktionen.
@@ -35,39 +38,45 @@ configuration:
   transport:
     name: Transport
     description: Transportart fuer MQTT.
+  mqtt_client_id:
+    name: MQTT-Client-ID
+    description: Optionale MQTT-Client-Kennung.
   use_tls:
     name: TLS verwenden
     description: TLS fuer die MQTT-Verbindung aktivieren.
   insecure:
     name: Unsicheres TLS
     description: TLS-Zertifikatspruefung deaktivieren.
-  pictures:
-    name: Bilder
-    description: Fahrzeugbilder mit publizieren.
   picture_format:
     name: Bildformat
     description: Format fuer Bild-Topics.
-  no_capabilities:
-    name: Capabilities deaktivieren
-    description: Keine Capability-Daten publizieren.
-  update_on_connect:
-    name: Beim Verbinden aktualisieren
-    description: Direkt nach MQTT-Verbindung ein Update ausloesen.
   republish_on_update:
     name: Bei Update alles neu senden
     description: Alle Werte bei jedem Update erneut publizieren.
-  with_raw_json_topic:
-    name: Raw-JSON-Topic
-    description: Das rohe JSON als zusaetzliches Topic publizieren.
-  list_topics:
-    name: Topics protokollieren
-    description: Neu angelegte Topics im Log ausgeben.
+  retain_on_disconnect:
+    name: Werte bei Disconnect behalten
+    description: Letzte MQTT-Werte beim Trennen beibehalten.
+  with_full_json:
+    name: Full-JSON-Topic
+    description: Das komplette JSON zusaetzlich publizieren.
   convert_times:
     name: Zeiten umrechnen
     description: Zeitstempel in die Home-Assistant-Zeitzone umrechnen.
+  enable_homeassistant_discovery:
+    name: Home-Assistant-Discovery
+    description: Das Home-Assistant-Kompatibilitaets-Plugin aktivieren.
+  log_level:
+    name: Log-Level
+    description: Globales Log-Level fuer CarConnectivity.
+  api_log_level:
+    name: API-Log-Level
+    description: Connector-spezifisches API-Log-Level.
+  max_age:
+    name: Cache-Alter
+    description: Maximales Cache-Alter in Sekunden fuer Connector-Anfragen.
   locale:
     name: Locale
-    description: Locale fuer weconnect-mqtt, zum Beispiel de_DE.UTF-8.
-  additional_arguments:
-    name: Zusaetzliche Argumente
-    description: Extra-CLI-Parameter fuer weconnect-mqtt.
+    description: Locale fuer CarConnectivity, zum Beispiel de_DE.UTF-8.
+  hide_vins:
+    name: Versteckte VINs
+    description: Kommagetrennte VIN-Liste, die ignoriert werden soll.

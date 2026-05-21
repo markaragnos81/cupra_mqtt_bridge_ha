@@ -20,7 +20,10 @@ RUN \
     zlib-dev \
   && python3 -m venv /opt/venv \
   && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
-  && /opt/venv/bin/pip install --no-cache-dir weconnect-mqtt \
+  && /opt/venv/bin/pip install --no-cache-dir \
+    carconnectivity-plugin-mqtt \
+    carconnectivity-connector-seatcupra \
+    carconnectivity-plugin-mqtt_homeassistant \
   && apk del build-base
 
 COPY run.sh /run.sh

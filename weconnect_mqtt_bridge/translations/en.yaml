@@ -1,10 +1,13 @@
 configuration:
+  brand:
+    name: Brand
+    description: Select whether the connector should use MyCupra or MySeat.
   username:
     name: Username
-    description: Volkswagen or Cupra account username.
+    description: Seat or Cupra account username.
   password:
     name: Password
-    description: Volkswagen or Cupra account password.
+    description: Seat or Cupra account password.
   spin:
     name: S-PIN
     description: Optional S-PIN for writable vehicle actions.
@@ -35,39 +38,45 @@ configuration:
   transport:
     name: Transport
     description: MQTT transport type.
+  mqtt_client_id:
+    name: MQTT client ID
+    description: Optional MQTT client identifier.
   use_tls:
     name: Use TLS
     description: Enable TLS for the MQTT connection.
   insecure:
     name: Insecure TLS
     description: Disable TLS certificate verification.
-  pictures:
-    name: Pictures
-    description: Publish vehicle pictures.
   picture_format:
     name: Picture format
     description: Format used for picture topics.
-  no_capabilities:
-    name: Disable capabilities
-    description: Do not publish capability data.
-  update_on_connect:
-    name: Update on connect
-    description: Trigger an update right after MQTT connect.
   republish_on_update:
     name: Republish on update
     description: Republish all values on each update, not only changed ones.
-  with_raw_json_topic:
-    name: Raw JSON topic
-    description: Publish the raw JSON payload as an additional topic.
-  list_topics:
-    name: List topics
-    description: Log newly created topics.
+  retain_on_disconnect:
+    name: Retain on disconnect
+    description: Keep the last MQTT values on disconnect.
+  with_full_json:
+    name: Full JSON topic
+    description: Publish the full payload as an additional JSON topic.
   convert_times:
     name: Convert times
     description: Convert timestamps to the Home Assistant timezone.
+  enable_homeassistant_discovery:
+    name: Home Assistant discovery
+    description: Enable the Home Assistant compatibility plugin.
+  log_level:
+    name: Log level
+    description: Global CarConnectivity log level.
+  api_log_level:
+    name: API log level
+    description: Connector-specific API log level.
+  max_age:
+    name: Cache age
+    description: Maximum cache age in seconds for connector requests.
   locale:
     name: Locale
-    description: Locale passed to weconnect-mqtt, for example de_DE.UTF-8.
-  additional_arguments:
-    name: Additional arguments
-    description: Extra CLI arguments passed to weconnect-mqtt.
+    description: Locale passed to CarConnectivity, for example de_DE.UTF-8.
+  hide_vins:
+    name: Hidden VINs
+    description: Comma-separated VINs that should be ignored.

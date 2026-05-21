@@ -8,6 +8,7 @@ export LC_ALL=C.UTF-8
 
 mkdir -p /data
 
+BRAND="$(bashio::config 'brand')"
 USERNAME="$(bashio::config 'username')"
 PASSWORD="$(bashio::config 'password')"
 SPIN="$(bashio::config 'spin')"
@@ -20,87 +21,121 @@ UPDATE_INTERVAL="$(bashio::config 'update_interval')"
 MQTT_KEEPALIVE="$(bashio::config 'mqtt_keepalive')"
 MQTT_VERSION="$(bashio::config 'mqtt_version')"
 TRANSPORT="$(bashio::config 'transport')"
+MQTT_CLIENT_ID="$(bashio::config 'mqtt_client_id')"
 PICTURE_FORMAT="$(bashio::config 'picture_format')"
+LOG_LEVEL="$(bashio::config 'log_level')"
+API_LOG_LEVEL="$(bashio::config 'api_log_level')"
+MAX_AGE="$(bashio::config 'max_age')"
 LOCALE_VALUE="$(bashio::config 'locale')"
-ADDITIONAL_ARGUMENTS="$(bashio::config 'additional_arguments')"
+HIDE_VINS="$(bashio::config 'hide_vins')"
 TIMEZONE_VALUE="$(bashio::timezone)"
+CONFIG_PATH=/data/carconnectivity.json
 
-cmd=(
-  /opt/venv/bin/weconnect-mqtt
-  --username "$USERNAME"
-  --password "$PASSWORD"
-  --mqttbroker "$MQTT_BROKER"
-  --mqttport "$MQTT_PORT"
-  --prefix "$MQTT_PREFIX"
-  --interval "$UPDATE_INTERVAL"
-  --mqttkeepalive "$MQTT_KEEPALIVE"
-  --mqtt-version "$MQTT_VERSION"
-  --transport "$TRANSPORT"
-  --picture-format "$PICTURE_FORMAT"
-  --logging-format "%(asctime)s:%(levelname)s:%(module)s:%(message)s"
-  --logging-date-format "%Y-%m-%dT%H:%M:%S%z"
-)
+export CONFIG_PATH
+export BRAND
+export USERNAME
+export PASSWORD
+export SPIN
+export MQTT_BROKER
+export MQTT_PORT
+export MQTT_USERNAME
+export MQTT_PASSWORD
+export MQTT_PREFIX
+export UPDATE_INTERVAL
+export MQTT_KEEPALIVE
+export MQTT_VERSION
+export TRANSPORT
+export MQTT_CLIENT_ID
+export PICTURE_FORMAT
+export LOG_LEVEL
+export API_LOG_LEVEL
+export MAX_AGE
+export LOCALE_VALUE
+export HIDE_VINS
+export TIMEZONE_VALUE
+export USE_TLS=false
+export TLS_INSECURE=false
+export REPUBLISH_ON_UPDATE=false
+export RETAIN_ON_DISCONNECT=false
+export WITH_FULL_JSON=false
+export CONVERT_TIMES=false
+export ENABLE_HOMEASSISTANT_DISCOVERY=false
 
-if bashio::config.true 'update_on_connect'; then
-  cmd+=(--update-on-connect)
-fi
+if bashio::config.true 'use_tls'; then export USE_TLS=true; fi
+if bashio::config.true 'insecure'; then export TLS_INSECURE=true; fi
+if bashio::config.true 'republish_on_update'; then export REPUBLISH_ON_UPDATE=true; fi
+if bashio::config.true 'retain_on_disconnect'; then export RETAIN_ON_DISCONNECT=true; fi
+if bashio::config.true 'with_full_json'; then export WITH_FULL_JSON=true; fi
+if bashio::config.true 'convert_times'; then export CONVERT_TIMES=true; fi
+if bashio::config.true 'enable_homeassistant_discovery'; then export ENABLE_HOMEASSISTANT_DISCOVERY=true; fi
 
-if bashio::config.true 'republish_on_update'; then
-  cmd+=(--republish-on-update)
-fi
+/opt/venv/bin/python - <<'PY'
+import json
+import os
 
-if bashio::config.true 'with_raw_json_topic'; then
-  cmd+=(--with-raw-json-topic)
-fi
+hide_vins_raw = os.environ.get("HIDE_VINS", "").strip()
+hide_vins = [vin.strip() for vin in hide_vins_raw.split(",") if vin.strip()]
 
-if bashio::config.true 'list_topics'; then
-  cmd+=(--list-topics)
-fi
+connector_config = {
+    "interval": int(os.environ["UPDATE_INTERVAL"]),
+    "brand": os.environ["BRAND"],
+    "username": os.environ["USERNAME"],
+    "password": os.environ["PASSWORD"],
+    "max_age": int(os.environ["MAX_AGE"]),
+    "api_log_level": os.environ["API_LOG_LEVEL"],
+}
+if os.environ.get("SPIN"):
+    connector_config["spin"] = os.environ["SPIN"]
+if hide_vins:
+    connector_config["hide_vins"] = hide_vins
 
-if bashio::config.true 'pictures'; then
-  cmd+=(--pictures)
-fi
+mqtt_config = {
+    "broker": os.environ["MQTT_BROKER"],
+    "port": int(os.environ["MQTT_PORT"]),
+    "prefix": os.environ["MQTT_PREFIX"],
+    "keepalive": int(os.environ["MQTT_KEEPALIVE"]),
+    "version": os.environ["MQTT_VERSION"],
+    "transport": os.environ["TRANSPORT"],
+    "tls": os.environ["USE_TLS"].lower() == "true",
+    "tls_insecure": os.environ["TLS_INSECURE"].lower() == "true",
+    "republish_on_update": os.environ["REPUBLISH_ON_UPDATE"].lower() == "true",
+    "retain_on_disconnect": os.environ["RETAIN_ON_DISCONNECT"].lower() == "true",
+    "with_full_json": os.environ["WITH_FULL_JSON"].lower() == "true",
+    "image_format": os.environ["PICTURE_FORMAT"],
+}
+if os.environ.get("MQTT_USERNAME"):
+    mqtt_config["username"] = os.environ["MQTT_USERNAME"]
+if os.environ.get("MQTT_PASSWORD"):
+    mqtt_config["password"] = os.environ["MQTT_PASSWORD"]
+if os.environ.get("MQTT_CLIENT_ID"):
+    mqtt_config["clientid"] = os.environ["MQTT_CLIENT_ID"]
+if os.environ.get("LOCALE_VALUE"):
+    mqtt_config["locale"] = os.environ["LOCALE_VALUE"]
+if os.environ.get("CONVERT_TIMES", "").lower() == "true":
+    mqtt_config["convert_timezone"] = os.environ["TIMEZONE_VALUE"]
 
-if bashio::config.true 'no_capabilities'; then
-  cmd+=(--no-capabilities)
-fi
+plugins = [{"type": "mqtt", "config": mqtt_config}]
+if os.environ.get("ENABLE_HOMEASSISTANT_DISCOVERY", "").lower() == "true":
+    plugins.append({"type": "mqtt_homeassistant", "config": {}})
 
-if bashio::config.true 'use_tls'; then
-  cmd+=(--use-tls)
-fi
+config = {
+    "carConnectivity": {
+        "log_level": os.environ["LOG_LEVEL"],
+        "connectors": [
+            {"type": "seatcupra", "config": connector_config}
+        ],
+        "plugins": plugins,
+    }
+}
 
-if bashio::config.true 'insecure'; then
-  cmd+=(--insecure)
-fi
+with open(os.environ["CONFIG_PATH"], "w", encoding="utf-8") as file_handle:
+    json.dump(config, file_handle, indent=2)
+PY
 
-if bashio::config.true 'convert_times'; then
-  cmd+=(--convert-times "$TIMEZONE_VALUE")
-fi
-
-if [[ -n "$SPIN" ]]; then
-  cmd+=(--spin "$SPIN")
-fi
-
-if [[ -n "$MQTT_USERNAME" ]]; then
-  cmd+=(--mqtt-username "$MQTT_USERNAME")
-fi
-
-if [[ -n "$MQTT_PASSWORD" ]]; then
-  cmd+=(--mqtt-password "$MQTT_PASSWORD")
-fi
-
-if [[ -n "$LOCALE_VALUE" ]]; then
-  cmd+=(--locale "$LOCALE_VALUE")
-fi
-
-if [[ -n "$ADDITIONAL_ARGUMENTS" ]]; then
-  read -r -a user_extra <<< "$ADDITIONAL_ARGUMENTS"
-  cmd+=("${user_extra[@]}")
-fi
-
-bashio::log.info "Starting WeConnect MQTT Bridge"
+bashio::log.info "Starting Cupra MQTT Bridge"
 bashio::log.info "MQTT broker: ${MQTT_BROKER}:${MQTT_PORT}"
 bashio::log.info "MQTT prefix: ${MQTT_PREFIX}"
+bashio::log.info "Brand: ${BRAND}"
 bashio::log.info "Interval: ${UPDATE_INTERVAL}s"
 
-exec "${cmd[@]}"
+exec /opt/venv/bin/carconnectivity-mqtt "${CONFIG_PATH}"
