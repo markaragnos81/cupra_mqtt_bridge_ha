@@ -96,3 +96,10 @@ mqtt:
 - `hide_vins`: Kommagetrennte Liste von VINs, die ignoriert werden sollen
 - `picture_format`: `png` oder `txt`
 - `api_log_level`: Detailgrad des Seat/Cupra-Connectors
+
+## Bilder
+
+Die benoetigten Python-Bibliotheken fuer Fahrzeugbilder sind im Add-on enthalten.
+
+- `picture_format: png` publiziert PNG-Bilder
+- `picture_format: txt` publiziert ASCII-Bilder

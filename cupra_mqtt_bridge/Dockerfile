@@ -21,9 +21,11 @@ RUN \
   && python3 -m venv /opt/venv \
   && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
   && /opt/venv/bin/pip install --no-cache-dir \
+    ascii_magic \
     carconnectivity-plugin-mqtt \
     carconnectivity-connector-seatcupra \
     carconnectivity-plugin-mqtt_homeassistant \
+    pillow \
   && apk del build-base
 
 COPY run.sh /run.sh
