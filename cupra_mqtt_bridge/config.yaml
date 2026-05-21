@@ -1,6 +1,6 @@
 name: "Cupra MQTT Bridge"
 version: "0.2.0"
-slug: "weconnect_mqtt_bridge"
+slug: "cupra_mqtt_bridge"
 description: "Runs CarConnectivity for Seat/Cupra inside Home Assistant and publishes vehicle data to MQTT."
 url: "https://github.com/tillsteinbach/CarConnectivity-plugin-mqtt"
 startup: "services"
